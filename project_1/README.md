@@ -5,17 +5,17 @@ The script reads the source code in IPPcode23 from the standard input, checks th
     $ php8.1 parse.php < test.IPPcode23 > result.xml
 
 Example of `test.IPPcode23`:
-    .IPPcode23
+    `.IPPcode23<br>
     DEFVAR GF@one<br>
     DEFVAR GF@two<br>
     DEFVAR GF@result<br>
     MOVE GF@one int@5<br>
     MOVE GF@two int@10<br>
     ADD GF@result GF@one GF@two<br>
-    WRITE GF@result
+    WRITE GF@result`
 
 XML representation:
-    <?xml version="1.0" encoding="UTF-8"?>
+    `<?xml version="1.0" encoding="UTF-8"?>
     <program language="IPPcode23">
     <instruction order="1" opcode="DEFVAR">
         <arg1 type="var">GF@one</arg1>
@@ -42,7 +42,7 @@ XML representation:
     <instruction order="7" opcode="WRITE">
         <arg1 type="var">GF@result</arg1>
     </instruction>
-    </program>
+    </program>`
 
 ## Evaluation
     7.02/8  
