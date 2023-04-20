@@ -1,1 +1,1 @@
-# IPP_1
+# IPP - Principles of Programming Languages
