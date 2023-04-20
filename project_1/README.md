@@ -51,9 +51,9 @@ XML representation:
 ## Evaluation
     7.02/8  
 
-###### Lexical analysis (error detection): 95%<br>
-###### Syntactic analysis (error detection): 83%<br>
-###### Instruction processing (including errors): 96%<br>
-###### Non-trivial program processing: 87%<br>
-###### Total without extensions: 91%
+##### Lexical analysis (error detection): 95%
+##### Syntactic analysis (error detection): 83%
+##### Instruction processing (including errors): 96%
+##### Non-trivial program processing: 87%
+##### Total without extensions: 91%
 
