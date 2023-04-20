@@ -2,7 +2,7 @@
 The script reads the source code in IPPcode23 from the standard input, checks the lexical and syntactic correctness of the code and writes the XML representation of the program to the standard output
 
 ## Running
-    $ php8.1 parse.php < test.IPPcode23 > result.xml
+    $ php parse.php < test.IPPcode23 > result.xml
 
 Example of `test.IPPcode23`:
 ```
