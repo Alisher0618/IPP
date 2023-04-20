@@ -2,17 +2,17 @@
 The script reads the source code in IPPcode23 from the standard input, checks the lexical and syntactic correctness of the code and writes the XML representation of the program to the standard output
 
 ## Running
-    `$ php8.1 parse.php < test.IPPcode23 > result.xml`
+    $ php8.1 parse.php < test.IPPcode23 > result.xml
 
 Example of `test.IPPcode23`:
-    `.IPPcode23
-    DEFVAR GF@one
-    DEFVAR GF@two
-    DEFVAR GF@result
-    MOVE GF@one int@5
-    MOVE GF@two int@10
-    ADD GF@result GF@one GF@two
-    WRITE GF@result`
+    .IPPcode23
+    DEFVAR GF@one<br>
+    DEFVAR GF@two<br>
+    DEFVAR GF@result<br>
+    MOVE GF@one int@5<br>
+    MOVE GF@two int@10<br>
+    ADD GF@result GF@one GF@two<br>
+    WRITE GF@result
 
 XML representation:
     <?xml version="1.0" encoding="UTF-8"?>
@@ -48,8 +48,8 @@ XML representation:
     7.02/8  
 
 Lexical analysis (error detection): 95%
-Syntactic analysis (error detection): 83%
-Instruction processing (including errors): 96%
-Non-trivial program processing: 87%
+Syntactic analysis (error detection): 83%<br>
+Instruction processing (including errors): 96%<br>
+Non-trivial program processing: 87%<br>
 Total without extensions: 91%
 
