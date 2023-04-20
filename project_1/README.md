@@ -17,34 +17,34 @@ WRITE GF@result
 ```
 
 XML representation:
-    ```<?xml version="1.0" encoding="UTF-8"?>
-    <program language="IPPcode23">
-    <instruction order="1" opcode="DEFVAR">
-        <arg1 type="var">GF@one</arg1>
-    </instruction>
-    <instruction order="2" opcode="DEFVAR">
-        <arg1 type="var">GF@two</arg1>
-    </instruction>
-    <instruction order="3" opcode="DEFVAR">
-        <arg1 type="var">GF@result</arg1>
-    </instruction>
-    <instruction order="4" opcode="MOVE">
-        <arg1 type="var">GF@one</arg1>
-        <arg2 type="int">5</arg2>
-    </instruction>
-    <instruction order="5" opcode="MOVE">
-        <arg1 type="var">GF@two</arg1>
-        <arg2 type="int">10</arg2>
-    </instruction>
-    <instruction order="6" opcode="ADD">
-        <arg1 type="var">GF@result</arg1>
-        <arg2 type="var">GF@one</arg2>
-        <arg3 type="var">GF@two</arg3>
-    </instruction>
-    <instruction order="7" opcode="WRITE">
-        <arg1 type="var">GF@result</arg1>
-    </instruction>
-    </program>```
+```<?xml version="1.0" encoding="UTF-8"?>
+<program language="IPPcode23">
+<instruction order="1" opcode="DEFVAR">
+    <arg1 type="var">GF@one</arg1>
+</instruction>
+<instruction order="2" opcode="DEFVAR">
+    <arg1 type="var">GF@two</arg1>
+</instruction>
+<instruction order="3" opcode="DEFVAR">
+    <arg1 type="var">GF@result</arg1>
+</instruction>
+<instruction order="4" opcode="MOVE">
+    <arg1 type="var">GF@one</arg1>
+    <arg2 type="int">5</arg2>
+</instruction>
+<instruction order="5" opcode="MOVE">
+    <arg1 type="var">GF@two</arg1>
+    <arg2 type="int">10</arg2>
+</instruction>
+<instruction order="6" opcode="ADD">
+    <arg1 type="var">GF@result</arg1>
+    <arg2 type="var">GF@one</arg2>
+    <arg3 type="var">GF@two</arg3>
+</instruction>
+<instruction order="7" opcode="WRITE">
+    <arg1 type="var">GF@result</arg1>
+</instruction>
+</program>```
 
 ## Evaluation
     7.02/8  
