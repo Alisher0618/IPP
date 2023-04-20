@@ -17,7 +17,8 @@ WRITE GF@result
 ```
 
 XML representation:
-```<?xml version="1.0" encoding="UTF-8"?>
+```
+<?xml version="1.0" encoding="UTF-8"?>
 <program language="IPPcode23">
 <instruction order="1" opcode="DEFVAR">
     <arg1 type="var">GF@one</arg1>
@@ -44,10 +45,11 @@ XML representation:
 <instruction order="7" opcode="WRITE">
     <arg1 type="var">GF@result</arg1>
 </instruction>
-</program>```
+</program>
+```
 
 ## Evaluation
-    7.02/8  
+7.02/8  
 
 Lexical analysis (error detection): 95%<br>
 Syntactic analysis (error detection): 83%<br>
