@@ -4,45 +4,47 @@ The script reads the source code in IPPcode23 from the standard input, checks th
 ## Running
     $ php8.1 parse.php < test.IPPcode23 > result.xml
 
-Example of `test.IPPcode23`:<br>
-    .IPPcode23<br>
-    DEFVAR GF@one<br>
-    DEFVAR GF@two<br>
-    DEFVAR GF@result<br>
-    MOVE GF@one int@5<br>
-    MOVE GF@two int@10<br>
-    ADD GF@result GF@one GF@two<br>
-    WRITE GF@result
+Example of `test.IPPcode23`:
+```
+.IPPcode23
+DEFVAR GF@one
+DEFVAR GF@two
+DEFVAR GF@result
+MOVE GF@one int@5
+MOVE GF@two int@10
+ADD GF@result GF@one GF@two
+WRITE GF@result
+```
 
 XML representation:
-    <?xml version="1.0" encoding="UTF-8"?><br>
-    <program language="IPPcode23"><br>
-    <instruction order="1" opcode="DEFVAR"><br>
-        <arg1 type="var">GF@one</arg1><br>
-    </instruction><br>
-    <instruction order="2" opcode="DEFVAR"><br>
-        <arg1 type="var">GF@two</arg1><br>
-    </instruction><br>
-    <instruction order="3" opcode="DEFVAR"><br>
-        <arg1 type="var">GF@result</arg1><br>
-    </instruction><br>
-    <instruction order="4" opcode="MOVE"><br>
-        <arg1 type="var">GF@one</arg1><br>
-        <arg2 type="int">5</arg2><br>
-    </instruction><br>
-    <instruction order="5" opcode="MOVE"><br>
-        <arg1 type="var">GF@two</arg1><br>
-        <arg2 type="int">10</arg2><br>
-    </instruction><br>
-    <instruction order="6" opcode="ADD"><br>
-        <arg1 type="var">GF@result</arg1><br>
-        <arg2 type="var">GF@one</arg2><br>
-        <arg3 type="var">GF@two</arg3><br>
-    </instruction><br>
-    <instruction order="7" opcode="WRITE"><br>
-        <arg1 type="var">GF@result</arg1><br>
-    </instruction><br>
-    </program>
+    ```<?xml version="1.0" encoding="UTF-8"?>
+    <program language="IPPcode23">
+    <instruction order="1" opcode="DEFVAR">
+        <arg1 type="var">GF@one</arg1>
+    </instruction>
+    <instruction order="2" opcode="DEFVAR">
+        <arg1 type="var">GF@two</arg1>
+    </instruction>
+    <instruction order="3" opcode="DEFVAR">
+        <arg1 type="var">GF@result</arg1>
+    </instruction>
+    <instruction order="4" opcode="MOVE">
+        <arg1 type="var">GF@one</arg1>
+        <arg2 type="int">5</arg2>
+    </instruction>
+    <instruction order="5" opcode="MOVE">
+        <arg1 type="var">GF@two</arg1>
+        <arg2 type="int">10</arg2>
+    </instruction>
+    <instruction order="6" opcode="ADD">
+        <arg1 type="var">GF@result</arg1>
+        <arg2 type="var">GF@one</arg2>
+        <arg3 type="var">GF@two</arg3>
+    </instruction>
+    <instruction order="7" opcode="WRITE">
+        <arg1 type="var">GF@result</arg1>
+    </instruction>
+    </program>```
 
 ## Evaluation
     7.02/8  
