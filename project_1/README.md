@@ -5,14 +5,14 @@ The script reads the source code in IPPcode23 from the standard input, checks th
     $ php8.1 parse.php < test.IPPcode23 > result.xml
 
 Example of `test.IPPcode23`:
-    ```.IPPcode23<br>
+    .IPPcode23<br>
     DEFVAR GF@one<br>
     DEFVAR GF@two<br>
     DEFVAR GF@result<br>
     MOVE GF@one int@5<br>
     MOVE GF@two int@10<br>
     ADD GF@result GF@one GF@two<br>
-    WRITE GF@result```
+    WRITE GF@result
 
 XML representation:
     ```<?xml version="1.0" encoding="UTF-8"?>
