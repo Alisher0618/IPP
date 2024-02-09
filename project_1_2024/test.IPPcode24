@@ -1,0 +1,3 @@
+.IPPcode24
+DEFVAR GF@counter
+WRITE string@Proměnná\032GF@counter\032obsahuje\032
