@@ -1,6 +1,8 @@
 from xml.dom import minidom
 import sys, re
 
+import stats
+
 
 xml = minidom.Document()
 order = 0
@@ -448,7 +450,14 @@ def scanner():
     xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")
     sys.stdout.write(xml_str)
     sys.exit(0)
-            
-        
-scanner()
+          
+ret = stats.parseparams()
+      
+if ret is True:
+    stats.writeStats()
+else:
+    print("failure")
+#scanner()
+
+
 
