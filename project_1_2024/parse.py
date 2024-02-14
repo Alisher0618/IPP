@@ -1,7 +1,7 @@
 from xml.dom import minidom
 import sys, re
 
-import stats
+#import stats
 
 
 xml = minidom.Document()
@@ -427,21 +427,16 @@ def scanner():
         line_arr[0] = line_arr[0].upper()
         #print(line_arr[0])
         if(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader == 0):
+            counterheader += 1
             prog = xml.createElement('program')
             xml.appendChild(prog)
             prog.setAttribute('language', 'IPPcode24')
-        
-        if(line_arr[0] == '.IPPCODE24'):
-            counterheader += 1
-        
-        if(counterheader > 1):
+            continue;
+        elif(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader != 0):
             sys.exit(22)
             
         if(counterheader != 1):
             sys.exit(21)
-        
-        if(line_arr[0] == '.IPPCODE24'):
-            continue
         
         #print(line_arr)
         checkline(line_arr)
@@ -451,13 +446,12 @@ def scanner():
     sys.stdout.write(xml_str)
     sys.exit(0)
           
-ret = stats.parseparams()
+"""ret = stats.parseparams()
       
 if ret is True:
-    stats.writeStats()
-else:
-    print("failure")
-#scanner()
+    stats.writeStats()"""
+    
+scanner()
 
 
 
