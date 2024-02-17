@@ -188,7 +188,7 @@ def createXML_for3(line, order, num):
             argument2[0] = "var"
             arg2 = xml.createElement("arg2")
             arg2_text = xml.createTextNode(newArg2)
-    elif(argument2[0] == "int" or argument2[0] == "string" or argument2[0] == "bool"):
+    elif(argument2[0] == "int" or argument2[0] == "string" or argument2[0] == "bool" or argument2[0] == "nil"):
         if(argument2[0] == "string"):
             merge = ""
             for i in argument2:
@@ -202,7 +202,7 @@ def createXML_for3(line, order, num):
             arg2_text = xml.createTextNode(merge)
         else:
             arg2 = xml.createElement("arg2")
-            arg2_text = xml.createTextNode(argument2[1])  
+            arg2_text = xml.createTextNode(argument2[1])
     arg2.appendChild(arg2_text)
     instr.appendChild(arg2)
     arg2.setAttribute("type", argument2[0])
@@ -218,7 +218,7 @@ def createXML_for3(line, order, num):
             argument3[0] = "var"
             arg3 = xml.createElement("arg3")
             arg3_text = xml.createTextNode(newArg3)
-    elif(argument3[0] == "int" or argument3[0] == "string" or argument3[0] == "bool"):
+    elif(argument3[0] == "int" or argument3[0] == "string" or argument3[0] == "bool" or argument3[0] == "nil"):
         if(argument3[0] == "string"):
             merge = ""
             for i in argument3:
@@ -233,6 +233,7 @@ def createXML_for3(line, order, num):
         else:
             arg3 = xml.createElement("arg3")
             arg3_text = xml.createTextNode(argument3[1])  
+    
     arg3.appendChild(arg3_text)
     instr.appendChild(arg3)
     arg3.setAttribute("type", argument3[0])
@@ -413,11 +414,12 @@ def scanner():
     global prog
     
     counterheader = 0
-    
+    check_eof = 0
+
     for line in sys.stdin:
+        check_eof += 1
         if(re.search(r"#[^\r\n]*", line)):
             line = re.sub(r"#[^\r\n]*", "", line)
-        
         line = re.sub(r'\s+', ' ', line)
         
         if not line.strip():
@@ -425,6 +427,7 @@ def scanner():
         
         line_arr = line.strip().split()
         line_arr[0] = line_arr[0].upper()
+        
         #print(line_arr[0])
         if(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader == 0):
             counterheader += 1
@@ -433,18 +436,20 @@ def scanner():
             prog.setAttribute('language', 'IPPcode24')
             continue;
         elif(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader != 0):
-            sys.exit(22)
+            sys.exit(23)
             
         if(counterheader != 1):
             sys.exit(21)
         
         #print(line_arr)
         checkline(line_arr)
-        
-             
-    xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")
-    sys.stdout.write(xml_str)
-    sys.exit(0)
+    
+    if(check_eof != 0):
+        xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")
+        sys.stdout.write(xml_str)
+        sys.exit(0)
+    else:
+        sys.exit(21)
           
 """ret = stats.parseparams()
       
