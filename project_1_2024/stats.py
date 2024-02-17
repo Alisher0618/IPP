@@ -13,10 +13,69 @@ class Stats:
         self.fwjumps = 0
         self.backjumps = 0
         self.badjumps = 0
-        self.labels_map = []
-        self.jumps_map = []
+        self.labelsStack = []
+        self.jumpsStack = []
         self.loc = []
         self.files = ""
+    
+    
+    #GET 
+    
+    
+    def getInstr(self):
+        return self.instr
+    
+    def getComment(self):
+        return self.comments
+    
+    def getLabel(self):
+        return self.labels
+    
+    def getJump(self):
+        return self.jumps
+    
+    def getFwJump(self):
+        return self.fwjumps
+    
+    def getBackJump(self):
+        return self.backjumps
+    
+    def getBadJump(self):
+        return self.badjumps
+    
+    def getHeader(self):
+        return self.header
+    
+    def getLabelMap(self):
+        return self.labelsStack
+    
+    def getJumpMap(self):
+        return self.jumpsStack
+    
+    
+    #SET
+    
+    
+    def setInstr(self):
+        self.instr += 1
+    
+    def setComment(self):
+        self.comments += 1
+        
+    def setJump(self):
+        self.jumps += 1
+    
+    def setFwJump(self):
+        self.fwjumps += 1  
+        
+    def setBackJump(self):
+        self.backjumps += 1
+        
+    def setBadJump(self):
+        self.badjumps += 1
+    
+    def setLabel(self):
+        self.labels += 1
         
         
     @staticmethod
@@ -60,20 +119,24 @@ def parseparams():
             ret = True
             break
         
-    #add return code 10
-    
-    if(not find):
-        return False
+    #add mupltiple count of --stats in params
+        
+    if(not find and len(sys.argv) > 1): # если есть параметры для статистики, но нет --stats
+        exit(10)
     
     return ret
     
+    
+# add --eol param support
 def writeStats():
     statistics = Stats.get_instance()
     file = statistics.writeFile();
     
-    for i in sys.argv:
-        file.write(i + '\n')
-    
-    
+    for i in range(2, len(sys.argv)):
+        if(sys.argv[i] == "--loc"):
+            file.write(str(statistics.getInstr()) + '\n')
+        elif(sys.argv[i] == "--comments"):
+            file.write(str(statistics.getComment()) + '\n')
+
         
     
