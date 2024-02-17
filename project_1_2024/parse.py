@@ -1,7 +1,7 @@
 from xml.dom import minidom
 import sys, re
 
-#import stats
+from stats import *
 
 
 xml = minidom.Document()
@@ -80,8 +80,7 @@ def checkArgumentOne(instrName, argName):
         return var
     else:
         sys.exit(23)
-        
-        
+            
 def checkArgumentTwo(instrName, argName):
     global regVar
     global regInt
@@ -136,9 +135,7 @@ def checkArgumentThree(argName):
         return var
     else:
         sys.exit(23)
-        
-        
-        
+         
 def specialSymbol(argName):  
     for elem in argName:
         if('&' in elem):
@@ -306,8 +303,6 @@ def createXML_for2(line, order, num):
             instr.appendChild(arg2)
             arg2.setAttribute("type", argument2)
 
-    
-
 def createXML_for1(line, order, num):
     global xml
     global prog
@@ -359,7 +354,6 @@ def createXML_for1(line, order, num):
         instr.appendChild(arg1)
         arg1.setAttribute("type", argument)
     
-
 def createXML_for0(line, order):
     global xml
     global prog
@@ -407,11 +401,10 @@ def checkline(line):
         #print("err 23")
         sys.exit(23)
     
-    
-
 def scanner():
     global xml
     global prog
+    getStats = Stats.get_instance()
     
     counterheader = 0
     check_eof = 0
@@ -420,6 +413,8 @@ def scanner():
         check_eof += 1
         if(re.search(r"#[^\r\n]*", line)):
             line = re.sub(r"#[^\r\n]*", "", line)
+            getStats.setComment()                   #counting comments
+            
         line = re.sub(r'\s+', ' ', line)
         
         if not line.strip():
@@ -436,27 +431,28 @@ def scanner():
             prog.setAttribute('language', 'IPPcode24')
             continue;
         elif(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader != 0):
-            sys.exit(23)
+            sys.exit(22)
             
         if(counterheader != 1):
             sys.exit(21)
         
         #print(line_arr)
+        
+        getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
+        
         checkline(line_arr)
     
     if(check_eof != 0):
         xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")
         sys.stdout.write(xml_str)
-        sys.exit(0)
     else:
         sys.exit(21)
           
-"""ret = stats.parseparams()
+ret = parseparams()
       
-if ret is True:
-    stats.writeStats()"""
-    
 scanner()
 
+if ret is True:
+    writeStats()
 
-
+sys.exit(0)
