@@ -401,6 +401,26 @@ def checkline(line):
         #print("err 23")
         sys.exit(23)
     
+
+def checklabel(line, order):
+    getStats = Stats.get_instance()
+    jumps = ["CALL", "JUMP", "JUMPIFEQ", "JUMPIFNEQ"]
+
+    if(line[0] in jumps): 
+        getStats.setJumpDict(order, line[1])
+        getStats.setJump()
+    elif(line[0] == "LABEL"):
+        getStats.setLabelDict(order, line[1])
+        getStats.setLabel()
+        
+
+
+def find_frequent(line):
+    getStats = Stats.get_instance()
+
+    if(line[0] in instructions and line[0] != ".IPPCODE24"):
+        getStats.setFreq(line[0])
+        
 def scanner():
     global xml
     global prog
@@ -438,8 +458,11 @@ def scanner():
         
         #print(line_arr)
         
+        checklabel(line_arr, check_eof)
+        
         getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
         
+        find_frequent(line_arr)
         checkline(line_arr)
     
     if(check_eof != 0):
@@ -447,12 +470,22 @@ def scanner():
         sys.stdout.write(xml_str)
     else:
         sys.exit(21)
-          
+
+def printHelp():
+    pass
+
+if(len(sys.argv) == 2 and sys.argv[1] == "--help"):
+    printHelp()
+    sys.exit(0)
+
 ret = parseparams()
-      
+
 scanner()
 
 if ret is True:
     writeStats()
 
 sys.exit(0)
+
+#Add help
+#Add multiple file support
