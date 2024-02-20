@@ -424,6 +424,7 @@ def find_frequent(line):
 def scanner():
     global xml
     global prog
+    global ret
     getStats = Stats.get_instance()
     
     counterheader = 0
@@ -457,12 +458,10 @@ def scanner():
             sys.exit(21)
         
         #print(line_arr)
-        
-        checklabel(line_arr, check_eof)
-        
-        getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
-        
-        find_frequent(line_arr)
+        if(ret is True):
+            checklabel(line_arr, check_eof)
+            getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
+            find_frequent(line_arr)
         checkline(line_arr)
     
     if(check_eof != 0):
@@ -472,7 +471,25 @@ def scanner():
         sys.exit(21)
 
 def printHelp():
-    pass
+    print("Code analyzer in IPPcode24 - filter script (parse.py in Python 3.10)\n")
+    print("This is how does it works:")
+    print("1) reads source code in IPPcode24 from standard input")
+    print("2) checks the lexical and syntactic correctness of the code")
+    print("3) prints it to standard output XML representation of the program.\n")
+    print("Usage: python3 parse.py [--help] [...]")
+    print("where [...] means optional arguments such as:")
+    print("--stats=file - prints statistics to the file")
+    print("--print=string - prints string to the file")
+    print("--eol - prints line breaks to the file")
+    print("--comments - prints the number of lines on which there was a comment to the file")
+    print("--jumps - prints number of jumps to the file")
+    print("--labels - prints number of labels to the file")
+    print("--fwjumps - prints number of forward hops to the file")
+    print("--backjumps - prints number of back hops to the file")
+    print("--badjumps - prints number of bad hops to the file")
+    print("--frequent - prints lists the names of the operation codes that are most frequent")
+    print("\t     according to the number of static occurrences to the file")
+    print("--loc - prints the number of lines with instructions to the file")
 
 if(len(sys.argv) == 2 and sys.argv[1] == "--help"):
     printHelp()
