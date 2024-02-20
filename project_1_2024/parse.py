@@ -458,11 +458,13 @@ def scanner():
             sys.exit(21)
         
         #print(line_arr)
+        checkline(line_arr)
+        
         if(ret is True):
             checklabel(line_arr, check_eof)
             getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
             find_frequent(line_arr)
-        checkline(line_arr)
+        
     
     if(check_eof != 0):
         xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")

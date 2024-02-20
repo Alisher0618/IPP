@@ -18,8 +18,8 @@ class Stats:
         self.frequent = []
         self.countInstr = {}
         #self.loc = []
-        self.files = ""
-        self.special_string = ""
+        self.files = []
+        self.special_string = []
     
     
     #GET 
@@ -66,9 +66,8 @@ class Stats:
 
     def getCountInstr(self): # for frequent
         return self.countInstr
-    
+     
     #SET
-    
     
     def setInstr(self):
         self.instr += 1
@@ -95,7 +94,7 @@ class Stats:
         self.header = True
         
     def setSpecialString(self, spec_str):
-        self.special_string = spec_str
+        self.special_string.append(spec_str)
         
     def setJumpDict(self, key, value):
         self.jumps_dict[key] = value
@@ -105,7 +104,7 @@ class Stats:
         
     def setFreq(self, opcode):
         self.frequent.append(opcode)
-    
+        
     def setCountInstr(self, key, value): # for frequent
         self.countInstr[key] = value
     
@@ -117,10 +116,11 @@ class Stats:
         return Stats._instance
     
     def inputFile(self, filename):
-        self.files = filename
+        self.files.append(filename)
      
     def writeFile(self):
-        file = open(self.files, 'w')
+        file = open(self.files[0], 'w')
+        del self.files[0]
         
         if not file:
             print("error with file")
@@ -128,9 +128,6 @@ class Stats:
         
         return file
             
-    
-    
-    
 regStats = "^--stats=.+"
 regPrint = "^--print=.+"
 
@@ -141,26 +138,38 @@ def parseparams():
                  "--frequent", "--eol", "parse.py"]
     find = False
     ret = False
-        
+    unique_instr = []
+    tmpFileName1 = ""
+    tmpFileName2 = ""
     statistics = Stats.get_instance()
     
     for i in params:
-        if(i not in allparams and not re.search(regStats, i) and not re.search(regPrint, i)):            
+        if(i not in allparams and not re.search(regStats, i) and not re.search(regPrint, i)):
             sys.exit(10)
         if(re.search(regStats, i)):
             find = True
             mainparam = i.split('=')
             statistics.inputFile(mainparam[1])
+            if(len(unique_instr) != 0):
+                if(len(unique_instr) != len(set(unique_instr))):
+                    sys.exit(12)
+                else:
+                    unique_instr = []
             ret = True
         if(re.search(regPrint, i)):
             spec_string = i.split('=')
             statistics.setSpecialString(spec_string[1])
-        
-    #add mupltiple count of --stats in params
+        else:
+            if(i in allparams and i != "parse.py"):
+                unique_instr.append(i)
+                    
+    
+    if(len(unique_instr) != len(set(unique_instr))):
+        sys.exit(12)
         
     if(not find and len(sys.argv) > 1): # если есть параметры для статистики, но нет --stats
         sys.exit(10)
-    
+
     return ret
 
 def find_key(label, value):
@@ -192,7 +201,16 @@ def writeStats():
     statistics = Stats.get_instance()
     file = statistics.writeFile();
     countJumps()
+
+    
     for i in range(2, len(sys.argv)):
+        
+        if(re.search(regStats, sys.argv[i])):
+            file.close()
+            file = statistics.writeFile()
+            print(file)
+            continue    
+        
         if(sys.argv[i] == "--eol"):
             file.write('\n')
         if(sys.argv[i] == "--loc"):
@@ -217,7 +235,8 @@ def writeStats():
 
             file.write(", ".join(map(str, most_common_elements)) + '\n')
         elif(re.search(regPrint, sys.argv[i])):
-            file.write(str(statistics.getSpecString()) + '\n')
+            file.write(str(statistics.getSpecString()[0]) + '\n')
+            del statistics.getSpecString()[0]
         elif(sys.argv[i] == "--fwjumps"):
             file.write(str(statistics.getFwJump()) + '\n')
         elif(sys.argv[i] == "--backjumps"):
