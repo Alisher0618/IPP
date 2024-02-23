@@ -1,5 +1,7 @@
 import sys, re
 
+error_params = 10
+error_output_file = 12
 
 class Stats:
     _instance = None
@@ -124,7 +126,7 @@ class Stats:
         
         if not file:
             print("error with file")
-            exit(12)
+            sys.exit(error_output_file)
         
         return file
             
@@ -138,37 +140,36 @@ def parseparams():
                  "--frequent", "--eol", "parse.py"]
     find = False
     ret = False
-    unique_instr = []
-    tmpFileName1 = ""
-    tmpFileName2 = ""
+    unique_file = []
     statistics = Stats.get_instance()
     
     for i in params:
         if(i not in allparams and not re.search(regStats, i) and not re.search(regPrint, i)):
-            sys.exit(10)
+            sys.exit(error_params)
         if(re.search(regStats, i)):
             find = True
             mainparam = i.split('=')
+            
+            if(mainparam[1] in allparams or re.search(regStats, mainparam[1]) or re.search(regPrint, mainparam[1])):
+                return sys.exit(error_params)
+
             statistics.inputFile(mainparam[1])
-            if(len(unique_instr) != 0):
-                if(len(unique_instr) != len(set(unique_instr))):
-                    sys.exit(12)
-                else:
-                    unique_instr = []
             ret = True
+            
+            if(len(unique_file) == 0):
+                unique_file.append(mainparam[1])
+            else:
+                if(mainparam[1] in unique_file):
+                    return sys.exit(error_output_file)
+                else:
+                    unique_file.append(mainparam[1])
+        
         if(re.search(regPrint, i)):
             spec_string = i.split('=')
             statistics.setSpecialString(spec_string[1])
-        else:
-            if(i in allparams and i != "parse.py"):
-                unique_instr.append(i)
-                    
-    
-    if(len(unique_instr) != len(set(unique_instr))):
-        sys.exit(12)
-        
+
     if(not find and len(sys.argv) > 1): # если есть параметры для статистики, но нет --stats
-        sys.exit(10)
+        sys.exit(error_params)
 
     return ret
 
@@ -208,8 +209,7 @@ def writeStats():
         if(re.search(regStats, sys.argv[i])):
             file.close()
             file = statistics.writeFile()
-            print(file)
-            continue    
+            continue
         
         if(sys.argv[i] == "--eol"):
             file.write('\n')

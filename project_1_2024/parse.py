@@ -14,8 +14,7 @@ instructions = ["MOVE", "CREATEFRAME", "PUSHFRAME", "POPFRAME", "DEFVAR", "CALL"
             "CONCAT", "STRLEN", "GETCHAR", "SETCHAR",
             "TYPE", 
             "LABEL", "JUMP", "JUMPIFEQ", "JUMPIFNEQ", "EXIT",
-            "DPRINT", "BREAK",
-            ".IPPCODE24", ".IPPcode24"]
+            "DPRINT", "BREAK"]
 
 threeArgs = ["ADD", "SUB", "MUL", "IDIV", "LT", "GT", "EQ", "AND", "OR", "STRI2INT", 
     "CONCAT", "GETCHAR", "SETCHAR", "JUMPIFEQ", "JUMPIFNEQ"]
@@ -43,6 +42,12 @@ firstIsSymb = ["PUSHS", "WRITE", "EXIT", "DPRINT"]
 
 sndArgIsSymb = ["MOVE", "ADD", "SUB", "MUL", "IDIV", "LT", "GT", "EQ", "AND", "OR", "NOT", 
 "INT2CHAR", "STRI2INT", "CONCAT", "STRLEN", "GETCHAR", "SETCHAR", "TYPE", "JUMPIFEQ", "JUMPIFNEQ"]
+
+success = 0
+error_header = 21;
+error_opcode = 22;
+error_lexical_syntatic = 23;
+
 
 def checkArgumentOne(instrName, argName):
     global regVar
@@ -79,7 +84,7 @@ def checkArgumentOne(instrName, argName):
         var = argName.split('@')
         return var
     else:
-        sys.exit(23)
+        sys.exit(error_lexical_syntatic)
             
 def checkArgumentTwo(instrName, argName):
     global regVar
@@ -109,7 +114,7 @@ def checkArgumentTwo(instrName, argName):
     elif(instrName == "READ" and re.match(regType, argName)):
         return "type"
     else:
-        sys.exit(23)
+        sys.exit(error_lexical_syntatic)
         
 def checkArgumentThree(argName):
     global regVar
@@ -134,7 +139,7 @@ def checkArgumentThree(argName):
         var = argName.split('@')
         return var
     else:
-        sys.exit(23)
+        sys.exit(error_lexical_syntatic)
          
 def specialSymbol(argName):  
     for elem in argName:
@@ -396,10 +401,10 @@ def checkline(line):
         
     elif(line[0] not in instructions):
         #print("err 22")
-        sys.exit(22)
+        sys.exit(error_opcode)
     else:
         #print("err 23")
-        sys.exit(23)
+        sys.exit(error_lexical_syntatic)
     
 
 def checklabel(line, order):
@@ -413,8 +418,6 @@ def checklabel(line, order):
         getStats.setLabelDict(order, line[1])
         getStats.setLabel()
         
-
-
 def find_frequent(line):
     getStats = Stats.get_instance()
 
@@ -452,10 +455,10 @@ def scanner():
             prog.setAttribute('language', 'IPPcode24')
             continue;
         elif(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader != 0):
-            sys.exit(22)
+            sys.exit(error_opcode)
             
         if(counterheader != 1):
-            sys.exit(21)
+            sys.exit(error_header)
         
         #print(line_arr)
         checkline(line_arr)
@@ -470,7 +473,7 @@ def scanner():
         xml_str = xml.toprettyxml(indent='\t', encoding="UTF-8").decode("utf-8")
         sys.stdout.write(xml_str)
     else:
-        sys.exit(21)
+        sys.exit(error_header)
 
 def printHelp():
     print("Code analyzer in IPPcode24 - filter script (parse.py in Python 3.10)\n")
@@ -495,16 +498,16 @@ def printHelp():
 
 if(len(sys.argv) == 2 and sys.argv[1] == "--help"):
     printHelp()
-    sys.exit(0)
+    sys.exit(success)
 
 ret = parseparams()
-
+    
 scanner()
 
 if ret is True:
     writeStats()
 
-sys.exit(0)
+sys.exit(success)
 
 #Add help
 #Add multiple file support
