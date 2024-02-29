@@ -24,9 +24,7 @@ class Stats:
         self.special_string = []
     
     
-    #GET 
-    
-    
+    #GETTERS 
     def getInstr(self):
         return self.instr
     
@@ -69,7 +67,7 @@ class Stats:
     def getCountInstr(self): # for frequent
         return self.countInstr
      
-    #SET
+    #SETTERS
     
     def setInstr(self):
         self.instr += 1
@@ -168,7 +166,7 @@ def parseparams():
             spec_string = i.split('=')
             statistics.setSpecialString(spec_string[1])
 
-    if(not find and len(sys.argv) > 1): # если есть параметры для статистики, но нет --stats
+    if(not find and len(sys.argv) > 1):
         sys.exit(error_params)
 
     if(len(sys.argv) > 1 and not re.search(regStats, sys.argv[1])):
@@ -200,8 +198,6 @@ def countJumps():
         elif(key2 == -1):
             getStats.setBackJump()
         
-    
-# add --eol param support
 def writeStats():
     statistics = Stats.get_instance()
     file = statistics.writeFile();

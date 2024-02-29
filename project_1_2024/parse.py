@@ -65,8 +65,6 @@ def checkArgumentOne(instrName, argName):
         var = argName.split('@')
         return var
     elif(instrName in firstIsLabel and re.match(regLabel, argName)):
-        #argName = "label"
-        #return argName
         return "label"
     elif(instrName in firstIsSymb and re.match(regVar, argName)):
         var = argName.split('@')
@@ -162,9 +160,7 @@ def createXML_for3(line, order, num):
     instr.setAttribute("order", str(order))
     instr.setAttribute("opcode", line[0])
     
-    # FIRST ARGUMENT
-
-    
+    # FIRST ARGUMENT    
     argument1 = checkArgumentOne(line[0], line[1])
     if(argument1[0] == 'string'):
         argument1 = specialSymbol(argument1)
@@ -181,7 +177,6 @@ def createXML_for3(line, order, num):
         arg1.setAttribute("type", argument1)
     
     # SECOND ARGUMENT
-
     argument2 = checkArgumentTwo(line[0], line[2])
     if(argument2[0] == 'string'):
         argument2 = specialSymbol(argument2)
@@ -209,8 +204,7 @@ def createXML_for3(line, order, num):
     instr.appendChild(arg2)
     arg2.setAttribute("type", argument2[0])
     
-    # THIRD ARGUMENT
-    
+    # THIRD ARGUMENT 
     argument3 = checkArgumentThree(line[3])
     if(argument3[0] == 'string'):
         argument3 = specialSymbol(argument3)
@@ -249,6 +243,7 @@ def createXML_for2(line, order, num):
     instr.setAttribute("order", str(order))
     instr.setAttribute("opcode", line[0])
     
+    # FIRST ARGUMENT
     argument1 = checkArgumentOne(line[0], line[1])
     
     if(argument1[0] == 'string'):
@@ -261,6 +256,8 @@ def createXML_for2(line, order, num):
     argument1[0] = "var"
     arg1.setAttribute("type", argument1[0])
     
+    
+    # SECOND ARGUMENT
     argument2 = checkArgumentTwo(line[0], line[2])
     
     if(argument2[0] == 'string'):
@@ -316,9 +313,7 @@ def createXML_for1(line, order, num):
     prog.appendChild(instr)
     instr.setAttribute("order", str(order))
     instr.setAttribute("opcode", line[0])
-    
-    #print(line[0])
-    
+        
     argument = checkArgumentOne(line[0], line[1])
     if(argument[0] == 'string'):
         argument = specialSymbol(argument)
@@ -332,7 +327,6 @@ def createXML_for1(line, order, num):
             arg1.appendChild(arg1_text)
         else:
             if(argument[0] == "string"):
-                #node = "string"
                 merge = ""
                 for i in argument:
                     if(merge == "" and i != "string"):
@@ -343,7 +337,6 @@ def createXML_for1(line, order, num):
                         merge = merge + '@' + i
                 arg1 = xml.createElement("arg1")
                 arg1_text = xml.createTextNode(merge)
-                #print(argument)
                 arg1.appendChild(arg1_text)
             else:
                 arg1 = xml.createElement("arg1")
@@ -447,7 +440,6 @@ def scanner():
         line_arr = line.strip().split()
         line_arr[0] = line_arr[0].upper()
         
-        #print(line_arr[0])
         if(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader == 0):
             counterheader += 1
             prog = xml.createElement('program')
@@ -455,17 +447,16 @@ def scanner():
             prog.setAttribute('language', 'IPPcode24')
             continue;
         elif(re.match(r'^\.IPPCODE24$', line_arr[0]) and counterheader != 0):
-            sys.exit(error_opcode)
+            sys.exit(error_lexical_syntatic)
             
         if(counterheader != 1):
             sys.exit(error_header)
         
-        #print(line_arr)
         checkline(line_arr)
         
         if(ret is True):
             checklabel(line_arr, check_eof)
-            getStats.setInstr() #counting instruction!!!!!!!!!!!!!!!!!!!!!!!!
+            getStats.setInstr()
             find_frequent(line_arr)
         
     
@@ -508,6 +499,3 @@ if ret is True:
     writeStats()
 
 sys.exit(success)
-
-#Add help
-#Add multiple file support
