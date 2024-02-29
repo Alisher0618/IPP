@@ -171,6 +171,10 @@ def parseparams():
     if(not find and len(sys.argv) > 1): # если есть параметры для статистики, но нет --stats
         sys.exit(error_params)
 
+    if(len(sys.argv) > 1 and not re.search(regStats, sys.argv[1])):
+        sys.exit(error_params)
+
+
     return ret
 
 def find_key(label, value):
