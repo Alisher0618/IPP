@@ -12,6 +12,7 @@ use IPP\Core\ReturnCode;
 use ParseXML;
 use DOMElement;
 use Instructions;
+use Interexception;
 
 include 'printXML.php';
 include 'Instructions.php';
@@ -32,10 +33,10 @@ class Interpreter extends AbstractInterpreter
         $sourceReader = $settings->getSourceReader();
         $inputFile = $settings->getInputReader();
         $dom = $sourceReader->getDOMDocument();
-
+        $output_stdout = $this->stdout;
         $file = $inputFile->readInt();
         
-        echo "value from inputfile: " . $file . "\n";
+        //echo "value from inputfile: " . $file . "\n";
 
         if ($dom instanceof DOMDocument) {
             $instructions = [];
@@ -48,21 +49,25 @@ class Interpreter extends AbstractInterpreter
                     if($node->tagName == "instruction"){
                         if($node->getAttribute('opcode') === '' || $node->getAttribute('order') === ''){
                             $this->stderr->writeString("INVALID XML STRUCTURE\n");
+                            echo "aarrrrn\n";
                             exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
                         }
                         array_push($instructions, $node);
+                    }else{
+                        exit(32);
                     }
                 }
             }
 
-            for ($i=0; $i < sizeof($instructions); $i++) { 
+            /*for ($i=0; $i < sizeof($instructions); $i++) { 
                 echo $instructions[$i]->getAttribute('opcode') . " : " . $instructions[$i]->getAttribute('order') . "\n";
-            }
+            }*/
 
             $number_of_label = 0;
             for ($i=0; $i < sizeof($instructions); $i++){ 
                 if($test->check_order($instructions[$i]->getAttribute('order'))){
                     $this->stderr->writeString("INVALID XML STRUCTURE\n");
+                    echo "aarrrrn\n";
                     exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
                 }
                 
@@ -76,20 +81,24 @@ class Interpreter extends AbstractInterpreter
                             $labels[$arg->nodeValue] = $number_of_label;
                         }
                     }
-                    $number_of_label++;
+                    
                 }
-                
+                $number_of_label++;
             } 
 
             //run            
 
-            echo gettype($instructions) . " " . gettype($inputFile) ."\n";
+            //echo gettype($instructions) . " " . gettype($inputFile) ."\n";
 
-            $start = new Instructions($labels, $inputFile);
+            /*foreach ($labels as $x => $y) {
+                echo "$x: $y \n";
+            }*/
+
+            $start = new Instructions($labels, $inputFile, $output_stdout);
             $step = 0;
-            for ($i=0; $i <sizeof($instructions); $i++) { 
-                $start->start_interpreter($instructions[$i], $i);
-                $step++;
+            for ($i=0; $i < sizeof($instructions); $i++) { 
+                $step = $start->start_interpreter($instructions[$i], $i);
+                $i = $step;
             }
             
 

@@ -1,5 +1,6 @@
 <?php
 
+include 'Interexceptions.php';
 
 class Execute{
     public string $opcode;
@@ -11,15 +12,14 @@ class Execute{
         $this->class_instr = $class_instr;
     }
 
-    public function check_type($symbol){
+    public function check_type(mixed $symbol) : mixed {
         if($symbol->getAttribute('type') == "var"){
             $parts = explode("@", $symbol->nodeValue);
             $value = $this->class_instr->stack->get_symbol($parts);
             //echo $value . "\n";
             if($value == null){
                 if($this->opcode != "TYPE"){
-                    echo "Variable has no value.\n";
-                    exit(56);
+                    throw new Interexception("ERROR: No value", 56);
                 }else{
                     $return_value = null;
                     $return_type = "var";
@@ -33,8 +33,7 @@ class Execute{
             $label_name = $symbol->nodeValue;
 
             if(!array_key_exists($label_name, $this->class_instr->all_labels)){
-                echo "label does not exist in all_labels\n";
-                exit(52);
+                throw new Interexception("ERROR: Nonexisting label", 52);
             }
 
             $return_type = $this->class_instr->all_labels[$label_name];
@@ -49,57 +48,64 @@ class Execute{
     }
 
     // DEFVAR
-    public function instr_defvar(){
+    public function instr_defvar() : void {
         $this->class_instr->check_arguments($this->instr);
         $arg = $this->instr->getElementsByTagName('arg1')->item(0);
 
         if (!($arg->hasAttribute('type'))) {
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         } 
 
         if($arg->getAttribute('type') != "var"){
-            echo "wrong type of argument\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $var_value = $arg->nodeValue;
 
         $parts = explode("@", $var_value);
         $this->class_instr->stack->push_frame($parts);
-        
+        //$this->class_instr->stack->set_symbol($arg->nodeValue, "null", "null");
     }
 
     // WRITE
-    public function instr_write(){
+    public function instr_write() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg = $this->instr->getElementsByTagName('arg1')->item(0);
 
         if (!($arg->hasAttribute('type'))) {
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
 
         if($arg->getAttribute('type') == "var"){
             $parts = explode("@", $arg->nodeValue);
             $value = $this->class_instr->stack->get_symbol($parts);
-
-            echo $value . "\n";
+            $type = $this->class_instr->stack->get_type($parts[1]);
+            //echo $value . " - " . $type . "\n";
+            if($type == "int"){
+                $this->class_instr->write_stdout->writeInt((int) $value);
+            }else if($type == "nil"){
+                $this->class_instr->write_stdout->writeString("");
+            }else if($type == "string"){ //if string add converter
+                $this->class_instr->write_stdout->writeString($value);
+            }else if($type == "bool"){ //if string add converter
+                $this->class_instr->write_stdout->writeString($value);
+            }
+             
         }
         else{
-            if($arg->getAttribute('type') == "int" || $arg->getAttribute('type') == "bool"){
-                echo $arg->nodeValue . "\n";
+            if($arg->getAttribute('type') == "int"){
+                $this->class_instr->write_stdout->writeInt((int) $arg->nodeValue);
             }else if($arg->getAttribute('type') == "nil"){
-                echo "" . "\n";
+                $this->class_instr->write_stdout->writeString("");
             }else if($arg->getAttribute('type') == "string"){ //if string add converter
-                echo $arg->nodeValue . "\n";
+                $this->class_instr->write_stdout->writeString($arg->nodeValue);
             }   
         }
     }
 
     // MOVE
-    public function instr_move(){
+    public function instr_move() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -108,20 +114,21 @@ class Execute{
         //echo $arg_2->nodeValue . "\n";
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
 
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
+
+        if($arg2_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
 
         if($arg2_symb[0] == "string" && $arg2_symb[1] == null){
             $arg2_symb[1] = "";
@@ -135,7 +142,7 @@ class Execute{
     }
 
     // ADD, SUB, MUL, IDIV
-    public function instr_math($opcode){
+    public function instr_math(string $opcode) : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -143,28 +150,31 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
+
+        if(($arg2_symb[0] == null|| $arg3_symb[0] == null)){
+            throw new Interexception("ERROR: No type", 56);
+        }
         
         if(($arg2_symb[0] != "int" || $arg3_symb[0] != "int")){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
+        }
+
+        if((!is_numeric($arg2_symb[1])|| !is_numeric($arg3_symb[1]))){
+            throw new Interexception("ERROR: Wrong operand value", 32);
         }
 
         if($opcode == "ADD"){
@@ -173,10 +183,9 @@ class Execute{
             $sum = (int) $arg2_symb[1] - (int) $arg3_symb[1];
         }elseif($opcode == "MUL"){
             $sum = (int) $arg2_symb[1] * (int) $arg3_symb[1];
-        }elseif($opcode == "IDIV"){
+        }else{
             if((int) $arg3_symb[1] == 0){
-                echo "division by zero\n";
-                exit(57);
+                throw new Interexception("ERROR: Division by zero", 57);
             }
             $sum = intdiv((int) $arg2_symb[1], (int) $arg3_symb[1]);
         }
@@ -185,7 +194,7 @@ class Execute{
     }
 
     // LT, EQ, GT
-    public function instr_rel($opcode){
+    public function instr_rel(string $opcode) : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -193,20 +202,16 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
@@ -220,44 +225,47 @@ class Execute{
                 }else{
                     $result = "false";
                 }
-            }else{
+                
+                $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
+            }
+            else{
                 if($arg2_symb[0] != $arg3_symb[0]){
-                    echo " wrong type of arguments\n";
-                    exit(53);
+                    throw new Interexception("ERROR: Wrong type of argument", 53);
                 }
 
                 if($arg2_symb[0] == "int"){
                     if(!(is_numeric($arg2_symb[1]) && is_numeric($arg3_symb[1]))){
-                        echo "wrong value of argument\n";
-                        exit(32);
+                        throw new Interexception("ERROR: Wrong value of argument", 57);
                     }
 
                     $tmp_result = (int) $arg2_symb[1] == (int) $arg3_symb[1];
                     $result = strtolower((string) $tmp_result);
+
+                    $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
                 }
             }
+        }
+        elseif($opcode == "LT" || $opcode == "GT"){
+            if($arg2_symb[0] == null || $arg3_symb[0] == null){
+                throw new Interexception("ERROR: No type", 53);
+            }
 
-        }elseif($opcode == "LT" || $opcode == "GT"){
             if($arg2_symb[0] == "nil" || $arg3_symb[0] == "nil"){
-                echo "cant apply these operands on nil type\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong operand type", 53);
             }
             if($arg2_symb[0] != $arg3_symb[0]){
-                echo "wrong types\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong operand type", 53);
             }
 
             $allowed_types = array("int", "bool", "string");
 
             if(!in_array($arg2_symb[0], $allowed_types) || !in_array($arg3_symb[0], $allowed_types)){
-                echo "wrong types\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong operand type", 53);
             }
 
             if($arg2_symb[0] == "bool"){
                 if(($arg2_symb[1] != "true" || $arg2_symb[1] != "false") || ($arg3_symb[1] != "true" || $arg3_symb[1] != "false")){
-                    echo "wrong value of argument\n";
-                    exit(32);
+                    throw new Interexception("ERROR: Wrong value of argument", 57);
                 }
 
                 if($arg2_symb[1] == "true"){
@@ -274,8 +282,7 @@ class Execute{
 
             if($arg2_symb[0] == "int"){
                 if(!(is_numeric($arg2_symb[1]) && is_numeric($arg3_symb[1]))){
-                    echo "wrong value of argument\n";
-                    exit(32);
+                    throw new Interexception("ERROR: Wrong type of argument", 57);
                 }
 
                 $arg2_symb[1] = (int) $arg2_symb[1];
@@ -285,47 +292,47 @@ class Execute{
             if($opcode == "GT"){
                 $tmp_result = (string) ($arg2_symb[1] > $arg3_symb[1]);
                 $result = strtolower((string) $tmp_result);
-            }elseif($opcode == "LT"){
+
+                $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
+            }
+            else{
                 $tmp_result = (string) ($arg2_symb[1] < $arg3_symb[1]);
                 $result = strtolower((string) $tmp_result);
-            }
-            
-        }
 
-        $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
+                $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
+            }   
+        }
     }
 
     // ADD, OR, NOT
-    public function instr_bool($opcode){
+    public function instr_bool(string $opcode) : void {
         $this->class_instr->check_arguments($this->instr);
-
+        $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
         if($opcode == "NOT"){
-            $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
             $arg_2 = $this->instr->getElementsByTagName('arg2')->item(0);
     
             if(!($arg_1->hasAttribute('type'))){
-                echo "tag is empty\n";
-                exit(32);
+               throw new Interexception("ERROR: Tag is empty", 32);
             }
             if(!($arg_2->hasAttribute('type'))){
-                echo "tag is empty\n";
-                exit(32);
+                throw new Interexception("ERROR: Tag is empty", 32);
             }
             if($arg_1->getAttribute('type') != "var"){
-                echo "bad operand type\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong type of structure", 32);
             }
     
             $arg2_symb = $this->check_type($arg_2);
 
             if($arg2_symb[0] != "bool"){
-                echo "wrong type of argument\n";
-                exit(53);
+                throw new Interexception("ERROR: No type", 53);
+            }
+
+            if($arg2_symb[0] == null){
+                throw new Interexception("ERROR: No type", 56);
             }
 
             if($arg2_symb[1] != "true" && $arg2_symb[1] != "false"){
-                echo "wrong value of argument\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong value of operand", 57);
             }
 
             if($arg2_symb[1] == "true"){
@@ -337,41 +344,44 @@ class Execute{
             $tmp_result = (string) (!$arg2_symb[1]);
             $result = strtolower((string) $tmp_result);
 
+            if($result == "1"){
+                $result = "true";
+            }else{
+                $result = "false";
+            }
+            $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
 
         }
         elseif($opcode == "AND" || $opcode == "OR"){
-            $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
             $arg_2 = $this->instr->getElementsByTagName('arg2')->item(0);
             $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
     
             if(!($arg_1->hasAttribute('type'))){
-                echo "tag is empty\n";
-                exit(32);
+                throw new Interexception("ERROR: Tag is empty", 32);
             }
             if(!($arg_2->hasAttribute('type'))){
-                echo "tag is empty\n";
-                exit(32);
+                throw new Interexception("ERROR: Tag is empty", 32);
             }
             if(!($arg_3->hasAttribute('type'))){
-                echo "tag is empty\n";
-                exit(32);
+                throw new Interexception("ERROR: Tag is empty", 32);
             }
             if($arg_1->getAttribute('type') != "var"){
-                echo "bad operand type\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong type of structure", 32);
             }
     
             $arg2_symb = $this->check_type($arg_2);
             $arg3_symb = $this->check_type($arg_3);
             
             if($arg2_symb[0] != "bool" || $arg3_symb[0] != "bool"){
-                echo "wrong type of arguments\n";
-                exit(53);
+                throw new Interexception("ERROR: Wrong operand type", 53);
+            }
+
+            if($arg2_symb[0] == null || $arg3_symb[0] == null){
+                throw new Interexception("ERROR: No type", 56);
             }
 
             if(($arg2_symb[1] != "true" && $arg2_symb[1] != "false") || ($arg3_symb[1] != "true" && $arg3_symb[1] != "false")){
-                echo "wrong value of argument\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong value of operand", 57);
             }
 
             if($arg2_symb[1] == "true"){
@@ -389,66 +399,62 @@ class Execute{
             if($opcode == "AND"){
                 $tmp_result = (string) ($arg2_symb[1] && $arg3_symb[1]);
                 $result = strtolower((string) $tmp_result);
-            }elseif($opcode == "OR"){
+            }else{
                 $tmp_result = (string) ($arg2_symb[1] || $arg3_symb[1]);
                 $result = strtolower((string) $tmp_result);
             }
-        }
-        
-        if($result == "1"){
-            $result = "true";
-        }else{
-            $result = "false";
-        }
-        
-        $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
 
+            if($result == "1"){
+                $result = "true";
+            }else{
+                $result = "false";
+            }
+            $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "bool");
+        }
+        
     }
 
     // INT2CHAR
-    public function instr_int2char(){
+    public function instr_int2char() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
         $arg_2 = $this->instr->getElementsByTagName('arg2')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
 
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
 
+        if($arg2_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
+
         if($arg2_symb[0] != "int"){
-            echo "wrong type of argument\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
         
         if(!(is_numeric($arg2_symb[1]))){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         $tmp = (int)($arg2_symb[1]);
         if(!mb_check_encoding(mb_chr($tmp, 'UTF-8'), 'UTF-8')){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         try {
             $result = mb_chr((int)$tmp);
         } catch (Exception $e) {
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "string");
@@ -456,7 +462,7 @@ class Execute{
     }
 
     // STR2INT
-    public function instr_str2int(){
+    public function instr_str2int() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -464,38 +470,35 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
 
+        if(($arg2_symb[0] == null || $arg3_symb[0] == null)){
+            throw new Interexception("ERROR: No type", 56);
+        }
+
         if(($arg2_symb[0] != "string" || $arg3_symb[0] != "int")){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
 
         if(!(is_numeric($arg3_symb[1])) || (int)$arg3_symb[1] < 0){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         if((int)$arg3_symb[1] >= strlen($arg2_symb[1]) || $arg2_symb[1] == ""){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         $position = (int) $arg3_symb[1];
@@ -505,7 +508,7 @@ class Execute{
     }
 
     // CONCAT
-    public function instr_concat(){
+    public function instr_concat() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -513,28 +516,27 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
 
+        if(($arg2_symb[0] == null || $arg3_symb[0] == null)){
+            throw new Interexception("ERROR:No type", 56);
+        }
+
         if(($arg2_symb[0] != "string" || $arg3_symb[0] != "string")){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
 
         $result = $arg2_symb[1] . $arg3_symb[1];
@@ -543,30 +545,36 @@ class Execute{
     }
 
     // STRLEN
-    public function instr_strlen(){
+    public function instr_strlen() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
         $arg_2 = $this->instr->getElementsByTagName('arg2')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
 
+        if($arg2_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
+
+        if($arg2_symb[1] == null){
+            $arg1_symb[1] = "";
+        }
+
+        //add string converter!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if($arg2_symb[0] != "string"){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
 
         $result = strlen($arg2_symb[1]);
@@ -575,7 +583,7 @@ class Execute{
     }
 
     // GETCHAR
-    public function instr_getchar(){
+    public function instr_getchar() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -583,38 +591,35 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong operand type", 32);
         }
 
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
 
+        if($arg2_symb[0] == null || $arg3_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
+
         if(($arg2_symb[0] != "string" || $arg3_symb[0] != "int")){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
 
         if(!(is_numeric($arg3_symb[1])) || (int)$arg3_symb[1] < 0){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         if((int)$arg3_symb[1] >= strlen($arg2_symb[1]) || $arg2_symb[1] == ""){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         $position = (int) $arg3_symb[1];
@@ -624,7 +629,7 @@ class Execute{
     }
 
     // SETCHAR
-    public function instr_setchar(){
+    public function instr_setchar() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -632,39 +637,40 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg1_symb = $this->check_type($arg_1);
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
 
+        if($arg3_symb[1] == null){
+            throw new Interexception("ERROR: No value", 58);
+        }
+
+        if($arg1_symb[0] == null || $arg2_symb[0] == null || $arg3_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
+
         if($arg1_symb[0] != "string" ||  $arg2_symb[0] != "int" || $arg3_symb[0] != "string"){
-            echo "bad operand type\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong operand type", 53);
         }
 
         if(!(is_numeric($arg2_symb[1])) || (int)$arg2_symb[1] < 0){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         if((int)$arg2_symb[1] >= strlen($arg1_symb[1]) || $arg3_symb[1] == ""){
-            echo "operation is not possible\n";
-            exit(58);
+            throw new Interexception("ERROR: Wrong operand type for this operation", 58);
         }
 
         $result = substr($arg1_symb[1], 0, intval($arg2_symb[1])) . $arg3_symb[1][0] . substr($arg1_symb[1], intval($arg2_symb[1]) + 1);
@@ -673,23 +679,21 @@ class Execute{
     }
 
     // LABEL
-    public function instr_label(){
+    public function instr_label() : void {
         $this->class_instr->check_arguments($this->instr);
     }
 
     // JUMP
-    public function instr_jump(){
+    public function instr_jump() : int {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "label"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
         $arg1_symb = $this->check_type($arg_1);
         //echo $arg1_symb[0] . " " . $arg1_symb[1] . "\n";
@@ -699,7 +703,7 @@ class Execute{
     }
 
     //JUMPIFEQ
-    public function instr_jumpifeq($step_old){
+    public function instr_jumpifeq(int $step_old) : int {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -707,25 +711,25 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "label"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg1_symb = $this->check_type($arg_1);
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
+
+        if($arg2_symb[0] == null || $arg3_symb[0] == null){
+            throw new Interexception("ERROR: No type", 56);
+        }
 
         if($arg2_symb[0] == $arg3_symb[0] || $arg2_symb[0] == "nil" || $arg3_symb[0] == "nil"){
             if($arg2_symb[1] == $arg3_symb[1]){
@@ -734,13 +738,12 @@ class Execute{
                 return $step_old;
             }
         }else{
-            echo "wrong arguments\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong arguments", 53);
         }
     }
 
     //JUMPIFNEQ
-    public function instr_jumpifneq($step_old){
+    public function instr_jumpifneq(int $step_old) : int {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
@@ -748,25 +751,25 @@ class Execute{
         $arg_3 = $this->instr->getElementsByTagName('arg3')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_3->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "label"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
 
         $arg1_symb = $this->check_type($arg_1);
         $arg2_symb = $this->check_type($arg_2);
         $arg3_symb = $this->check_type($arg_3);
+
+        if($arg2_symb[0] == null || $arg3_symb[0] == null){
+            throw new Interexception("ERROR: No value", 56);
+        }
 
         if($arg2_symb[0] == $arg3_symb[0] || $arg2_symb[0] == "nil" || $arg3_symb[0] == "nil"){
             if($arg2_symb[1] != $arg3_symb[1]){
@@ -775,32 +778,32 @@ class Execute{
                 return $step_old;
             }
         }else{
-            echo "wrong arguments\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong arguments", 53);
         }
     }
 
     // EXIT
-    public function instr_exit(){
+    public function instr_exit() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         
         $arg1_symb = $this->check_type($arg_1);
 
         if($arg1_symb[0] != "int"){
-            echo "wrong type of argument\n";
-            exit(53);
+            throw new Interexception("ERROR: Wrong type of argument", 53);
+        }
+
+        if($arg1_symb[1] == null){
+            throw new Interexception("ERROR: No value", 56);
         }
 
         if(!(is_numeric($arg1_symb[1])) || !($arg1_symb[1] >= 0 && $arg1_symb[1] <= 9)){
-            echo "wrong exit code\n";
-            exit(57);
+            throw new Interexception("ERROR: Wrong exit code", 57);
         }
 
         $exit_code = (int) $arg1_symb[1];
@@ -808,26 +811,23 @@ class Execute{
     }
 
     // TYPE
-    public function instr_type(){
+    public function instr_type() : void {
         $this->class_instr->check_arguments($this->instr);
 
         $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
         $arg_2 = $this->instr->getElementsByTagName('arg2')->item(0);
 
         if(!($arg_1->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if(!($arg_2->hasAttribute('type'))){
-            echo "tag is empty\n";
-            exit(32);
+            throw new Interexception("ERROR: Tag is empty", 32);
         }
         if($arg_1->getAttribute('type') != "var"){
-            echo "bad operand type\n";
-            exit(32);
+            throw new Interexception("ERROR: Wrong type of structure", 32);
         }
         
-        $arg1_symb = $this->check_type($arg_1);
+        //$arg1_symb = $this->check_type($arg_1);
         $arg2_symb = $this->check_type($arg_2);
 
         if($arg2_symb[0] == "var"){
@@ -841,6 +841,55 @@ class Execute{
         }
 
         $this->class_instr->stack->set_symbol($arg_1->nodeValue, $result, "string");
+    }
+
+    // CREATEFRAME
+    public function instr_createframe() : void {
+        $this->class_instr->check_arguments($this->instr);
+        $this->class_instr->stack->create_temp_frame();
+    }
+
+    // PUSHFRAME
+    public function instr_pushframe() : void {
+        $this->class_instr->check_arguments($this->instr);
+        if($this->class_instr->stack->is_created == false){
+            throw new Interexception("ERROR: frame is not defined", 55);
+        }
+        
+        array_push($this->class_instr->stack->local_frames, $this->class_instr->stack->temp_frames);
+        $this->class_instr->stack->temp_frames = array();
+        $this->class_instr->stack->is_created = false;
+    }
+
+    // POPFRAME
+    public function instr_popframe() : void {
+        $this->class_instr->check_arguments($this->instr);
+        //print_r($this->class_instr->stack->local_frames);
+        //echo sizeof($this->class_instr->stack->local_frames) . "\n";
+        if(sizeof($this->class_instr->stack->local_frames) == 0){
+            throw new Interexception("ERROR: frame is not defined or empty", 55);
+        }
+        $tmp_value = array_pop($this->class_instr->stack->local_frames);
+        $this->class_instr->stack->temp_frames = $tmp_value;
+    }
+
+    public function instr_call() : void {
+        $this->class_instr->check_arguments($this->instr);
+
+        $arg_1 = $this->instr->getElementsByTagName('arg1')->item(0);
+
+        if(!($arg_1->hasAttribute('type'))){
+            throw new Interexception("ERROR: Tag is empty", 32);
+        }
+        if($arg_1->getAttribute('type') != "label"){
+            throw new Interexception("ERROR: Wrong type of structure", 32);
+        }
+
+        $arg1_symb = $this->check_type($arg_1);
+        //echo $arg1_symb[0] . " - " . $arg1_symb[1] . "\n";
+        $order = $arg1_symb[1];
+
+        //array_push($this->call_instr->stack->callStack, )
     }
 
     public function execute(int $step) : int{
@@ -928,10 +977,25 @@ class Execute{
                 $this->instr_type();
             }
 
+            if($this->opcode == "CREATEFRAME"){
+                $this->instr_createframe();
+            }
+
+            if($this->opcode == "PUSHFRAME"){
+                $this->instr_pushframe();
+            }
+
+            if($this->opcode == "POPFRAME"){
+                $this->instr_popframe();
+            }
+
+            if($this->opcode == "CALL"){
+                $this->instr_call();
+            }
+
         }
         else{
-            echo "undefined opcode\n";
-            exit(32);
+            throw new Interexception("ERROR: Unexpected opcode", 32);
         }
 
         return $step;
@@ -940,52 +1004,116 @@ class Execute{
 }
 
 class Stack{
-    public $frames = array('GF' => array()/*, 'LF' => array()*/);
-    public $types = array();
+    /** @var array<string, array <string, string>> */
+    public array $frames = array('GF' => array());
+    /** @var array<string, string> */
+    public array $types = array();
+
+    public bool $is_created = false;
+
+    public array $local_frames = array();
+
+    public array $temp_frames;
+
+    public array $callStack;
 
     public function __construct(){
     }
 
-    public function push_frame($input){
+    public function push_frame(mixed $input) : void{
         if($input[0] == 'GF'){
             if(array_key_exists($input[1], $this->frames['GF'])){
-                echo "Repeated definition of the variable.\n";
-                exit(52);
+                throw new Interexception("ERROR: Repeated definition of the variable", 52);
             }
             $this->frames['GF'][$input[1]] = null;
         }
-    }
-
-    public function get_symbol($input){
-        if($input[0] == 'GF'){
-            if(array_key_exists($input[1], $this->frames['GF'])){
-                return $this->frames['GF'][$input[1]];
+        elseif($input[0] == 'TF'){
+            if($this->is_created == false){
+                throw new Interexception("ERROR: Cannot define variable with this type of frame", 55);
             }else{
-                echo "Nonexisting variable.\n";
-                exit(54);
+                if(array_key_exists($input[1], $this->temp_frames['TF'])){
+                    throw new Interexception("ERROR: Repeated definition of the variable", 52);
+                }
+                $this->temp_frames['TF'][$input[1]] = null;
             }
+            
         }
     }
 
-    public function get_type($input){
+    public function create_temp_frame() : void{
+        $this->temp_frames = array('TF' => array());
+        $this->is_created = true;
+    }
+
+    public function get_symbol(mixed $input) : string {
+        if($input[0] == 'GF'){
+            if(array_key_exists($input[1], $this->frames['GF'])){
+                if($this->frames['GF'][$input[1]] == null){
+                    return "";
+                }
+                return $this->frames['GF'][$input[1]];
+            }else{
+                throw new Interexception("ERROR: Nonexisting variable", 54);
+            }
+        }elseif($input[0] == 'LF'){
+            for ($i=sizeof($this->local_frames) - 1; $i >= 0; $i--) { 
+                if(array_key_exists($input[1], $this->local_frames[$i]['TF'])){
+                    if($this->local_frames[$i]['TF'][$input[1]] == null){
+                        return "";
+                    }
+                    return $this->local_frames[$i]['TF'][$input[1]];
+                }
+            }
+            throw new Interexception("ERROR: Nonexisting variable", 54);            
+        }
+        elseif($input[0] == 'TF'){
+            if(sizeof($this->temp_frames) > 0){
+                if(array_key_exists($input[1], $this->temp_frames['TF'])){
+                    if($this->temp_frames['TF'][$input[1]] == null){
+                        return "";
+                    }
+                    return $this->temp_frames['TF'][$input[1]];
+                }else{
+                    throw new Interexception("ERROR: Nonexisting variable", 54);
+                }
+            }else{
+                throw new Interexception("ERROR: Nonexisting frame", 55);
+            }
+            
+                        
+        }
+        
+
+        throw new Interexception("ERROR: Trying to reach undefined variable", 52);
+    }
+
+    public function get_type(mixed $input) : string {
         if(array_key_exists($input, $this->types)){
             return $this->types[$input];
-        }else{
-            echo "type does not exist\n";
-            exit(54);
+        }elseif(array_key_exists($input, $this->frames['GF'])){
+            return "";
+        }
+        else{
+            throw new Interexception("ERROR: Nonexisting type", 54);
         }    
     }
 
-    public function set_symbol($variable, $symbol, $type){
+    public function set_symbol(string $variable, string $symbol, string $type) : void {
         $parts = explode("@", $variable);  
         if($parts[0] == 'GF'){
             if(!array_key_exists($parts[1], $this->frames['GF'])){
-                echo "Nonexisting variable.\n";
-                exit(54);
+                throw new Interexception("ERROR: Nonexisting type", 54);
             }
             $this->frames['GF'][$parts[1]] = $symbol;
             $this->types[$parts[1]] = $type;
         } 
+        if($parts[0] == 'TF'){
+            if(!array_key_exists($parts[1], $this->temp_frames['TF'])){
+                throw new Interexception("ERROR: Nonexisting type", 54);
+            }
+            $this->temp_frames['TF'][$parts[1]] = $symbol;
+            $this->types[$parts[1]] = $type;
+        }
     }
 
 }
@@ -997,16 +1125,20 @@ class Instructions{
     public array $all_labels;
     public object $input_file;
     public mixed $stack;
-
+    public mixed $write_stdout;
     public string $program_output;
 
+    /** @var array<string> */
     public array $threeArgs = array("ADD", "SUB", "MUL", "IDIV", "LT", "GT", "EQ", "AND", "OR", "STRI2INT", 
         "CONCAT", "GETCHAR", "SETCHAR", "JUMPIFEQ", "JUMPIFNEQ");
 
+    /** @var array<string> */
     public array $twoArgs = array("MOVE", "INT2CHAR", "READ", "STRLEN", "TYPE", "NOT");
 
+    /** @var array<string> */
     public array $oneArgs = array("LABEL", "JUMP", "EXIT", "WRITE", "PUSHS", "POPS", "DEFVAR", "CALL", "DPRINT");
 
+    /** @var array<string> */
     public array $zeroArgs = array("CREATEFRAME", "PUSHFRAME", "POPFRAME", "RETURN", "BREAK");
     /**
      * Constructor for the Instructions class.
@@ -1014,40 +1146,52 @@ class Instructions{
      * @param array<string, int> $all_labels An associative array containing keys and values.
      * @param object $input_file The input file object.
      */
-    public function __construct(array $all_labels, object $input_file){
+    public function __construct(array $all_labels, object $input_file, $write_stdout){
         $this->all_labels = $all_labels;
         $this->input_file = $input_file;
         $this->stack = new Stack();
         $this->program_output = "";
+        $this->write_stdout = $write_stdout;
     }
 
     public function check_arguments(mixed $opcode) : void {
         if(in_array($opcode->getAttribute('opcode'), $this->threeArgs)){
             $arg = $opcode->getElementsByTagName('*');
             if(sizeof($arg) != 3){
-                echo "wrong number of arguments\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong number of arguments", 32);
+            }
+            foreach ($arg as $i) {
+                if (strpos($i->tagName, 'arg') === false) {
+                    throw new Interexception("ERROR: Wrong tag name", 32);
+                }
             }
         }
         elseif(in_array($opcode->getAttribute('opcode'), $this->twoArgs)){
             $arg = $opcode->getElementsByTagName('*');
             if(sizeof($arg) != 2){
-                echo "wrong number of arguments\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong number of arguments", 32);
+            }
+            foreach ($arg as $i) {
+                if (strpos($i->tagName, 'arg') === false) {
+                    throw new Interexception("ERROR: Wrong tag name", 32);
+                }
             }
         }
         elseif(in_array($opcode->getAttribute('opcode'), $this->oneArgs)){
             $arg = $opcode->getElementsByTagName('*');
             if(sizeof($arg) != 1){
-                echo "wrong number of arguments\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong number of arguments", 32);
+            }
+            foreach ($arg as $i) {
+                if (strpos($i->tagName, 'arg1') === false) {
+                    throw new Interexception("ERROR: Wrong tag name", 32);
+                }
             }
         }
         elseif(in_array($opcode->getAttribute('opcode'), $this->zeroArgs)){
             $arg = $opcode->getElementsByTagName('*');
             if(sizeof($arg) != 0){
-                echo "wrong number of arguments\n";
-                exit(32);
+                throw new Interexception("ERROR: Wrong number of arguments", 32);
             }
         }
     }
@@ -1056,6 +1200,8 @@ class Instructions{
         $actual_instr = new Execute($instr->getAttribute('opcode'), $instr, $this);
         $step = $actual_instr->execute($step);
         //print_r($this->stack->frames);
+        //print_r($this->stack->temp_frames);
+        //print_r($this->stack->local_frames);
         //print_r($this->stack->types);
         return $step;
     }
