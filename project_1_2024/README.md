@@ -51,9 +51,9 @@ XML representation:
 ## Evaluation
     7/7 + 1 point for STATP
 
-Lexical analysis (error detection): 95%
-Parsing (error detection): 91%
-Instruction processing (including errors): 98%
-Non-trivial program processing: 87%
-STATP extension 80%
+Lexical analysis (error detection): 95%</br>
+Parsing (error detection): 91%</br>
+Instruction processing (including errors): 98%</br>
+Non-trivial program processing: 87%</br>
+STATP extension 80%</br>
 Total without extensions: 94%
